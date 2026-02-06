@@ -44,7 +44,7 @@ const Users = () => {
         setError(null);
 
         const res = await fetch(
-          "http://localhost:3000/api/admin/getusersList",
+          "https://skill-swap-fullstack.onrender.com/api/admin/getusersList",
           {
             method: "GET",
             headers: {
