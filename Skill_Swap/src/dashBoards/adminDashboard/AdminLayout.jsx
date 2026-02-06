@@ -3,14 +3,14 @@ import AdminSidebar from "./AdminSidebar";
 
 const AdminLayout = () => {
   return (
-    <div className="flex">
+    <div className="flex min-h-screen">
       <AdminSidebar />
 
-      <main className="ml-64 w-full min-h-screen bg-gray-100 p-6">
+      <main className="ml-64 flex-1 bg-gray-100 p-6">
         <Outlet />
       </main>
     </div>
   );
 };
 
-export default AdminLayout; 
+export default AdminLayout;

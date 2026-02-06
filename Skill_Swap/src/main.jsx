@@ -29,7 +29,7 @@ import Settings from "./dashBoards/adminDashboard/pages/Settings";
 // Protected Routes
 import ProtectedRoute from "../routes/protectedRoutes";
 import MentorProtectedRoute from "../routes/MentorProtectedRoutes";
-import AdminLayout from "./dashBoards/adminDashboard/pages/AdminLayout";
+import AdminLayout from "./dashBoards/adminDashboard/AdminLayout";
 
 const router = createBrowserRouter([
   // ---------- PUBLIC ----------
