@@ -3,7 +3,9 @@
     {
       "src": "Skill_Swap/package.json",
       "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
+      "config": {
+        "outputDirectory": "dist"
+      }
     }
   ]
 }
