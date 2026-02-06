@@ -1,6 +1,8 @@
 import { create } from "zustand";
 
-const API_URL = "http://localhost:3000/api/auth";
+// const API_URL = "http://localhost:3000/api/auth";
+
+const API_URL="https://skill-swap-fullstack.onrender.com"
 
 export const useAuthStore = create((set, get) => ({
   user: null,
