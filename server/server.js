@@ -14,6 +14,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173", // local Vite dev
+      "http://localhost:3000", // optional
       "https://skill-swap-fullstack.vercel.app" // production frontend
     ],
     credentials: true
