@@ -19,7 +19,6 @@ import MentorSetupProfile from "./pages/mentor/MentorSetupProfile";
 import MentorEntry from "./pages/mentor/MentorEntry";
 
 // Admin Dashboard
-import AdminLayout from "./dashBoards/adminDashboard/AdminLayout";
 import AdminHome from "./dashBoards/adminDashboard/pages/AdminHome";
 import Users from "./dashBoards/adminDashboard/pages/Users";
 import Mentors from "./dashBoards/adminDashboard/pages/Mentors";
@@ -30,6 +29,7 @@ import Settings from "./dashBoards/adminDashboard/pages/Settings";
 // Protected Routes
 import ProtectedRoute from "../routes/protectedRoutes";
 import MentorProtectedRoute from "../routes/MentorProtectedRoutes";
+import AdminLayout from "./dashBoards/adminDashboard/pages/AdminLayout";
 
 const router = createBrowserRouter([
   // ---------- PUBLIC ----------
@@ -73,7 +73,7 @@ const router = createBrowserRouter([
   // ---------- ADMIN ROUTES ----------
   {
     path: "/admin",
-    element: <AdminLayout />,
+    element: <AdminLayout/>,
     children: [
       { index: true, element: <AdminHome /> },
       { path: "users", element: <Users /> },
