@@ -4,9 +4,12 @@ import { useNavigate } from "react-router";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const navigate=useNavigate();
+  const navigate = useNavigate();
 
-
+  const handleLogin = () => {
+    setIsOpen(false);
+    navigate("/login");
+  };
 
   return (
     <header className="w-full bg-white shadow-md sticky top-0 z-50">
@@ -39,7 +42,10 @@ const Navbar = () => {
 
         {/* Desktop Button */}
         <div className="hidden md:block">
-          <button className="border-2 border-blue-600 text-blue-600 px-4 py-1 rounded hover:bg-blue-600 hover:text-white transition" onClick={()=>{navigate("/login")}}>
+          <button
+            className="border-2 border-blue-600 text-blue-600 px-4 py-1 rounded hover:bg-blue-600 hover:text-white transition"
+            onClick={() => navigate("/login")}
+          >
             Login
           </button>
         </div>
@@ -85,7 +91,10 @@ const Navbar = () => {
               </a>
             </li>
             <li>
-              <button className="mt-2 border-2 border-blue-600 text-blue-600 px-4 py-1 rounded hover:bg-gradient-to-r from-blue-500 to-purple-600  transition">
+              <button
+                onClick={handleLogin}
+                className="mt-2 border-2 border-blue-600 text-blue-600 px-4 py-1 rounded hover:bg-gradient-to-r from-blue-500 to-purple-600 transition"
+              >
                 Login
               </button>
             </li>

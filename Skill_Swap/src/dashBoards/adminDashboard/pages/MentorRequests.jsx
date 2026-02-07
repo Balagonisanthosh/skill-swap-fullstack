@@ -83,7 +83,7 @@ const MentorRequests = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:3000/api/admin/mentor-requests/${selectedRequestId}/reject`,
+        `https://skill-swap-fullstack.onrender.com/api/admin/mentor-requests/${selectedRequestId}/reject`,
         {
           method: "PUT",
           headers: {
