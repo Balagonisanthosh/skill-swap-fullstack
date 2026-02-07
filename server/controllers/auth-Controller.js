@@ -5,7 +5,7 @@ const MentorRequest = require("../models/mentorRequest");
 const Mentor = require("../models/Mentor");
 const { generateAccessToken, generateRefreshToken } = require("../utils/Tokens");
 const ConnectionRequest = require("../models/ConnectionRequest");
-const { transporter } = require("../config/EmailTransporter");
+const transporter  = require("../config/EmailTransporter");
 require("dotenv").config();
 
 
