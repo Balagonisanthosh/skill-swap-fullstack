@@ -36,6 +36,7 @@ const Register = () => {
     setSkills(skills.filter((_, i) => i !== index));
   };
 
+  // ✅ Photo upload handler
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -207,6 +208,29 @@ const Register = () => {
               </button>
             </span>
           ))}
+        </div>
+
+        {/* ✅ Upload Photo */}
+        <div className="mt-4">
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            onChange={handlePhotoUpload}
+            className="hidden"
+          />
+
+          <button
+            type="button"
+            onClick={() => fileInputRef.current.click()}
+            className="w-full border border-dashed border-gray-400 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50"
+          >
+            Upload Profile Photo
+          </button>
+
+          {photoName && (
+            <p className="text-xs text-gray-500 mt-1">{photoName}</p>
+          )}
         </div>
 
         {/* Submit */}
