@@ -1,10 +1,10 @@
 import { create } from "zustand";
 
-// const ADMIN_API_URL = "http://localhost:3000/api/admin";
-// const AUTH_API_URL = "http://localhost:300/api/auth";
+const ADMIN_API_URL = "http://localhost:3000/api/admin";
+const AUTH_API_URL = "http://localhost:300/api/auth";
 
-const ADMIN_API_URL="https://skill-swap-fullstack.onrender.com/api/admin";
-const AUTH_API_URL="https://skill-swap-fullstack.onrender.com/api/auth"
+// const ADMIN_API_URL="https://skill-swap-fullstack.onrender.com/api/admin";
+// const AUTH_API_URL="https://skill-swap-fullstack.onrender.com/api/auth"
 
 
 const useAdminStore = create((set, get) => ({

@@ -5,6 +5,7 @@ const MentorRequest = require("../models/mentorRequest");
 const Mentor = require("../models/Mentor");
 const { generateAccessToken, generateRefreshToken } = require("../utils/Tokens");
 const ConnectionRequest = require("../models/ConnectionRequest");
+const { transporter } = require("../config/EmailTransporter");
 require("dotenv").config();
 
 
@@ -63,6 +64,22 @@ const register = async (req, res) => {
       profileImage: req.file ? req.file.path : null,
       role: "user",
       mentorStatus: "none",
+    });
+
+     await transporter.sendMail({
+      from: `"SkillSwap" <skillswapalerts@gmail.com>`,
+      to: email,
+      subject: "Welcome to SkillSwap 🎉",
+      html: `
+        <div style="font-family: Arial, sans-serif;">
+          <h2>Welcome, ${username} 👋</h2>
+          <p>Your SkillSwap account has been created successfully.</p>
+          <p>You can now start learning and sharing skills.</p>
+          <br />
+          <p>Happy Skill Swapping 🚀</p>
+          <p><strong>— SkillSwap Team</strong></p>
+        </div>
+      `
     });
 
     return res.status(201).json({
