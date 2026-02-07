@@ -17,7 +17,7 @@ const RequestMentorForm = ({ onClose }) => {
 
     try {
       const res = await fetch(
-        "htpp://localhost:3000/api/auth/user/applyMentor",
+        "https://localhost:3000/api/auth/user/applyMentor",
         {
           method: "POST",
           headers: {
