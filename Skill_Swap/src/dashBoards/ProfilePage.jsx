@@ -62,7 +62,6 @@ const ProfilePage = () => {
 
     setProfileImageFile(file);
 
-    // Local preview
     setUser((prev) => ({
       ...prev,
       profileImage: URL.createObjectURL(file),
@@ -78,7 +77,6 @@ const ProfilePage = () => {
         photo: profileImageFile,
       });
 
-      // Switch image back to Cloudinary URL
       if (updatedUser?.profileImage) {
         setUser((prev) => ({
           ...prev,
@@ -233,9 +231,18 @@ const ProfilePage = () => {
           {mentorRequest?.status !== "pending" && (
             <button
               onClick={() => setShowMentorForm(true)}
-              className="mt-4 px-5 py-2 border border-blue-500 text-blue-500 rounded hover:bg-blue-500 hover:text-white"
+              disabled={mentorRequest?.status === "approved"}
+              className={`mt-4 px-5 py-2 border rounded transition
+                ${
+                  mentorRequest?.status === "approved"
+                    ? "border-gray-400 text-gray-400 cursor-not-allowed"
+                    : "border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white"
+                }
+              `}
             >
-              {mentorRequest?.status === "rejected"
+              {mentorRequest?.status === "approved"
+                ? "Already a Mentor"
+                : mentorRequest?.status === "rejected"
                 ? "Re-apply as Mentor"
                 : "Request as Mentor"}
             </button>

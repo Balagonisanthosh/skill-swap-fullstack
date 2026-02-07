@@ -17,20 +17,21 @@ const Register = () => {
   const fileInputRef = useRef(null);
 
   const [loading, setLoading] = useState(false);
-
-  // ✅ NEW: error state
   const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
+  // ✅ Add skill on Enter
   const addSkill = (e, inputValue, setInput, skills, setSkills) => {
-    if (e.key === "Enter" && inputValue.trim() !== "") {
+    if (e.key === "Enter") {
       e.preventDefault();
+      if (!inputValue.trim()) return;
       setSkills([...skills, inputValue.trim()]);
       setInput("");
     }
   };
 
+  // ✅ Remove skill
   const removeSkill = (index, skills, setSkills) => {
     setSkills(skills.filter((_, i) => i !== index));
   };
@@ -38,7 +39,6 @@ const Register = () => {
   const handlePhotoUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     setPhoto(file);
     setPhotoName(file.name);
   };
@@ -47,7 +47,7 @@ const Register = () => {
     e.preventDefault();
     if (loading) return;
 
-    setError("");       // ✅ clear previous error
+    setError("");
     setLoading(true);
 
     try {
@@ -61,9 +61,7 @@ const Register = () => {
         JSON.stringify(skillsYouWantToLearn)
       );
 
-      if (photo) {
-        formData.append("photo", photo);
-      }
+      if (photo) formData.append("photo", photo);
 
       const response = await fetch(
         "https://skill-swap-fullstack.onrender.com/api/auth/register",
@@ -83,9 +81,8 @@ const Register = () => {
 
       alert("Registration successful 🎉");
       navigate("/login");
-
     } catch (err) {
-      console.error("Register error:", err);
+      console.error(err);
       setError("Something went wrong. Please try again.");
       setLoading(false);
     }
@@ -97,8 +94,6 @@ const Register = () => {
         className="bg-white p-8 rounded-xl shadow-md w-full max-w-md"
         onSubmit={handleSubmitButton}
       >
-
-        {/* ✅ ERROR MESSAGE */}
         {error && (
           <div className="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded text-sm">
             {error}
@@ -110,86 +105,125 @@ const Register = () => {
         </h2>
 
         {/* Username */}
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">Username</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            required
-            className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+        <input
+          className="w-full border rounded px-3 py-2 mb-4"
+          placeholder="Username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          required
+        />
 
         {/* Email */}
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
+        <input
+          className="w-full border rounded px-3 py-2 mb-4"
+          placeholder="Email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
 
         {/* Password */}
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-blue-500"
-          />
+        <input
+          className="w-full border rounded px-3 py-2 mb-4"
+          placeholder="Password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+
+        {/* Skills You Know */}
+        <input
+          className="w-full border rounded px-3 py-2"
+          placeholder="Skills you know (press Enter)"
+          value={knownSkillInput}
+          onChange={(e) => setKnownSkillInput(e.target.value)}
+          onKeyDown={(e) =>
+            addSkill(
+              e,
+              knownSkillInput,
+              setKnownSkillInput,
+              skillsYouKnown,
+              setSkillsYouKnown
+            )
+          }
+        />
+
+        <div className="flex flex-wrap gap-2 mt-2">
+          {skillsYouKnown.map((skill, index) => (
+            <span
+              key={index}
+              className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm flex gap-2"
+            >
+              {skill}
+              <button
+                type="button"
+                onClick={() =>
+                  removeSkill(index, skillsYouKnown, setSkillsYouKnown)
+                }
+              >
+                ×
+              </button>
+            </span>
+          ))}
         </div>
 
-        {/* Profile Photo */}
-        <div className="mb-5">
-          <label className="block mb-2 font-medium">Profile Photo</label>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current.click()}
-            className="px-4 py-2 border border-blue-500 text-blue-600 rounded-lg hover:bg-blue-50 transition text-sm font-medium"
-          >
-            Upload Photo
-          </button>
+        {/* Skills You Want to Learn */}
+        <input
+          className="w-full border rounded px-3 py-2 mt-4"
+          placeholder="Skills you want to learn (press Enter)"
+          value={learnSkillInput}
+          onChange={(e) => setLearnSkillInput(e.target.value)}
+          onKeyDown={(e) =>
+            addSkill(
+              e,
+              learnSkillInput,
+              setLearnSkillInput,
+              skillsYouWantToLearn,
+              setSkillsYouWantToLearn
+            )
+          }
+        />
 
-          {photoName && (
-            <p className="text-sm text-gray-600 mt-2">
-              ✅ Uploaded: <span className="font-medium">{photoName}</span>
-            </p>
-          )}
-
-          <input
-            ref={fileInputRef}
-            type="file"
-            hidden
-            accept="image/*"
-            onChange={handlePhotoUpload}
-          />
+        <div className="flex flex-wrap gap-2 mt-2">
+          {skillsYouWantToLearn.map((skill, index) => (
+            <span
+              key={index}
+              className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm flex gap-2"
+            >
+              {skill}
+              <button
+                type="button"
+                onClick={() =>
+                  removeSkill(
+                    index,
+                    skillsYouWantToLearn,
+                    setSkillsYouWantToLearn
+                  )
+                }
+              >
+                ×
+              </button>
+            </span>
+          ))}
         </div>
 
         {/* Submit */}
         <button
-          type="submit"
           disabled={loading}
-          className={`w-full py-2 rounded-lg font-semibold transition
-            ${
-              loading
-                ? "bg-blue-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700 text-white"
-            }
-          `}
+          className={`w-full mt-6 py-2 rounded-lg font-semibold ${
+            loading
+              ? "bg-blue-400 cursor-not-allowed"
+              : "bg-blue-600 hover:bg-blue-700 text-white"
+          }`}
         >
           {loading ? "Loading..." : "Create Account"}
         </button>
 
-        {/* Login Redirect */}
         <p className="text-center text-sm mt-4">
           Already have an account?{" "}
-          <Link to="/login" className="text-blue-600 font-medium hover:underline">
+          <Link to="/login" className="text-blue-600 font-medium">
             Login
           </Link>
         </p>
