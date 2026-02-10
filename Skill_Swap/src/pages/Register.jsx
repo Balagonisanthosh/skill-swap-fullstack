@@ -65,7 +65,7 @@ const Register = () => {
       if (photo) formData.append("photo", photo);
 
       const response = await fetch(
-        "https://skill-swap-fullstack.onrender.com/api/auth/register",
+        "http://localhost:3000/api/auth/register",
         {
           method: "POST",
           body: formData,

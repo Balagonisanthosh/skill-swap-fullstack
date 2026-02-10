@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const upload = require("../middleware/Upload");
-const { register, login, getProfile, updateProfile, applyMentorRequest, getMyMentorRequestStatus, fetchMentors, refreshToken, logout, sendConnectionRequest, getUserConnectionRequests, getMentorConnectionRequests, respondToConnectionRequest } = require("../controllers/auth-Controller");
+const { register, login, getProfile, updateProfile, applyMentorRequest, getMyMentorRequestStatus, fetchMentors, refreshToken, logout, sendConnectionRequest, getUserConnectionRequests, getMentorConnectionRequests, respondToConnectionRequest, forgotPassword, resetPassword } = require("../controllers/auth-Controller");
 const authMiddleware = require("../middleware/authMiddleWare");
 const uploadVideo = require("../middleware/uploadVideo");
 
@@ -25,6 +25,10 @@ router.post("/connectionRequest",authMiddleware,sendConnectionRequest);
 router.get("/connectionRequest/user",authMiddleware,getUserConnectionRequests);
 router.get("/connectionRequest/mentor",authMiddleware,getMentorConnectionRequests);
 router.patch("/connectionRequest/:id",authMiddleware,respondToConnectionRequest);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password/:token", resetPassword);
+
+
 
 router.post("/logout", logout);
 

@@ -39,7 +39,7 @@ const Mentors = () => {
         setError(null);
 
         const res = await fetch(
-          "https://skill-swap-fullstack.onrender.com/api/admin/getTotalMentorsList",
+          "http://localhost:3000/api/admin/getTotalMentorsList",
           {
             method: "GET",
             headers: {

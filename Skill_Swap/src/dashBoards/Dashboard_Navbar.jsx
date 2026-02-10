@@ -1,11 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
+import { useChatStore } from "../store/chatStore";
 
 const Dashboard_Navbar = () => {
   const navigate = useNavigate();
   const { logout, user } = useAuthStore();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { conversations, fetchConversations } = useChatStore();
+
+  useEffect(() => {
+    // ensure sidebar conversations (and unread counts) are loaded for badge
+    fetchConversations();
+  }, []);
+
+  const totalUnread = (conversations || []).reduce((sum, c) => sum + (c.unreadCount || 0), 0);
 
   const handleLogout = async () => {
     await logout();
@@ -52,6 +61,21 @@ const Dashboard_Navbar = () => {
           >
             Profile
           </li>
+          <li>
+            <button
+              onClick={() => navigate("/chat")}
+              className="relative p-2 rounded hover:bg-gray-100"
+              aria-label="Messages"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8-1.06 0-2.083-.13-3-.37L3 21l1.37-4.11C3.51 15.7 3 14.39 3 13c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+
+              {totalUnread > 0 && (
+                <span className="absolute -top-1 -right-1 inline-flex items-center justify-center bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{totalUnread}</span>
+              )}
+            </button>
+          </li>
         </ul>
 
         {/* DESKTOP LOGOUT */}
@@ -96,6 +120,22 @@ const Dashboard_Navbar = () => {
               onClick={() => handleNavigate("/profile")}
             >
               Profile
+            </li>
+
+            <li>
+              <button
+                onClick={() => handleNavigate("/chat")}
+                className="relative p-2 rounded hover:bg-gray-100"
+                aria-label="Messages"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8-1.06 0-2.083-.13-3-.37L3 21l1.37-4.11C3.51 15.7 3 14.39 3 13c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+
+                {totalUnread > 0 && (
+                  <span className="absolute -top-1 -right-1 inline-flex items-center justify-center bg-red-500 text-white text-xs px-2 py-0.5 rounded-full">{totalUnread}</span>
+                )}
+              </button>
             </li>
 
             <button

@@ -1,6 +1,9 @@
 import React, { useEffect, useState, useMemo } from "react";
 import Dashboard_Navbar from "./Dashboard_Navbar";
 import { useAuthStore } from "../store/authStore";
+import { useNavigate } from "react-router-dom";
+import { FaCommentDots } from "react-icons/fa";
+import { useChatStore } from "../store/chatStore";
 
 /* 🔹 Static Technology Categories */
 const TECH_CATEGORIES = [
@@ -25,7 +28,11 @@ const UserDashBoards = () => {
     fetchUserConnectionRequests,
     sendConnectionRequest,
     user,
+    token, // ✅ REQUIRED FOR CHAT
   } = useAuthStore();
+
+  const navigate = useNavigate();
+  const startConversation = useChatStore((state) => state.startConversation);
 
   const [mentors, setMentors] = useState([]);
   const [myRequests, setMyRequests] = useState([]);
@@ -46,23 +53,21 @@ const UserDashBoards = () => {
       setMentors(mentorData || []);
       setMyRequests(requestData || []);
 
-      // 🔹 Dynamic skill categories
+      // build dynamic categories
       const skillSet = new Set();
       mentorData?.forEach((m) =>
-        m.skills?.forEach((s) => skillSet.add(s))
+        m.skills?.forEach((s) => skillSet.add(s)),
       );
 
-      // 🔹 Merge all categories safely
-      const combinedCategories = [
+      setCategories([
         "All",
         "Beginner Friendly",
         "Intermediate",
         "Advanced",
         ...TECH_CATEGORIES,
         ...Array.from(skillSet),
-      ];
+      ]);
 
-      setCategories([...new Set(combinedCategories)]);
       setLoading(false);
     };
 
@@ -73,16 +78,36 @@ const UserDashBoards = () => {
   const getRequestForMentor = (mentorId) =>
     myRequests.find((r) => r.mentorId?._id === mentorId);
 
+  // ================= CHAT FIX (IMPORTANT) =================
+  const handleChatClick = async (receiverId) => {
+    try {
+      // 🧠 Support ALL p ossible backend shapes
+      if (!receiverId || receiverId.length !== 24) {
+        console.error("Invalid receiver userId", receiverId);
+        return;
+      }
+
+      // don't start chat with self
+      if (receiverId === user?._id) return;
+
+      const convo = await startConversation(receiverId, token, user?._id);
+      navigate(`/chat/${convo._id}`);
+    } catch (err) {
+      console.error("Failed to start chat:", err);
+    }
+  };
+
+
+
   // ================= FILTER + SEARCH =================
   const filteredMentors = useMemo(() => {
     let data =
       activeCategory === "All"
         ? mentors
         : mentors.filter((m) => {
-            // Experience-based filters
             if (
               ["Beginner Friendly", "Intermediate", "Advanced"].includes(
-                activeCategory
+                activeCategory,
               )
             ) {
               if (activeCategory === "Beginner Friendly")
@@ -93,7 +118,6 @@ const UserDashBoards = () => {
                 return m.experienceYears > 5;
             }
 
-            // Skill / title based filters
             return (
               m.skills?.includes(activeCategory) ||
               m.title?.toLowerCase().includes(activeCategory.toLowerCase())
@@ -119,7 +143,7 @@ const UserDashBoards = () => {
 
     await sendConnectionRequest(
       mentor._id,
-      "Hi! I’d love to connect and learn from your experience."
+      "Hi! I’d love to connect and learn from your experience.",
     );
 
     const updated = await fetchUserConnectionRequests();
@@ -143,7 +167,7 @@ const UserDashBoards = () => {
 
       {/* CONTENT */}
       <div className="max-w-7xl mx-auto px-6 py-10">
-        {/* 🔍 SEARCH */}
+        {/* SEARCH */}
         <div className="mb-6">
           <input
             type="text"
@@ -154,7 +178,7 @@ const UserDashBoards = () => {
           />
         </div>
 
-        {/* 🧭 CATEGORY BAR */}
+        {/* CATEGORY BAR */}
         <div className="flex gap-3 overflow-x-auto pb-4 mb-8">
           {categories.map((cat) => (
             <button
@@ -171,17 +195,6 @@ const UserDashBoards = () => {
           ))}
         </div>
 
-        {/* STATUS */}
-        {loading && (
-          <p className="text-center text-gray-500">Loading mentors...</p>
-        )}
-
-        {!loading && filteredMentors.length === 0 && (
-          <p className="text-center text-gray-500">
-            No mentors match your filters
-          </p>
-        )}
-
         {/* GRID */}
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
           {filteredMentors.map((mentor) => {
@@ -191,8 +204,22 @@ const UserDashBoards = () => {
             return (
               <div
                 key={mentor._id}
-                className="bg-white rounded-2xl border shadow-sm hover:shadow-xl transition flex flex-col"
+                className="bg-white rounded-2xl border shadow-sm hover:shadow-xl transition flex flex-col relative"
               >
+                {/* CHAT ICON */}
+                {request?.status === "accepted" && (
+                  <button
+                    onClick={() => handleChatClick(u._id)}
+                    title="Chat with mentor"
+                    className="absolute top-4 right-4 w-9 h-9 rounded-full
+                               bg-blue-600 text-white flex items-center justify-center
+                               hover:bg-blue-700 transition"
+                  >
+                    <FaCommentDots size={16} />
+                  </button>
+                )}
+
+                {/* CARD CONTENT */}
                 <div className="p-6 flex items-center gap-4">
                   {u.profileImage ? (
                     <img
@@ -259,7 +286,7 @@ const UserDashBoards = () => {
         </div>
       </div>
 
-      {/* MODAL */}
+      {/* MODAL (UNCHANGED) */}
       {selectedMentor && (() => {
         const u = selectedMentor.userId || {};
         const request = getRequestForMentor(selectedMentor._id);
@@ -278,7 +305,8 @@ const UserDashBoards = () => {
               <p className="text-sm text-gray-500 mb-4">{u.email}</p>
 
               <p className="mb-2">
-                <span className="font-medium">Bio:</span> {selectedMentor.bio}
+                <span className="font-medium">Bio:</span>{" "}
+                {selectedMentor.bio}
               </p>
 
               <p className="mb-2">

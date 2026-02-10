@@ -1,6 +1,9 @@
+const transporter  = require("../config/EmailTransporter");
 const Mentor = require("../models/Mentor");
 const User = require("../models/User");
 const MentorRequest = require("../models/mentorRequest");
+require("dotenv").config();
+
 
 
 const getAdminDashboardStats = async (req, res) => {
@@ -89,102 +92,227 @@ const FetchMentors = async (req, res) => {
 };
 
 const approveMentorRequest = async (req, res) => {
-  const { id } = req.params;
+  try {
+    const { id } = req.params;
 
-  const mentorRequest = await MentorRequest.findById(id);
-  if (!mentorRequest)
-    return res.status(404).json({ message: "Request not found" });
+    // 1️⃣ Find mentor request
+    const mentorRequest = await MentorRequest.findById(id);
+    if (!mentorRequest) {
+      return res.status(404).json({ message: "Request not found" });
+    }
 
-  mentorRequest.status = "approved";
-  mentorRequest.rejectionReason = null; 
-  await mentorRequest.save();
+    // 2️⃣ Update mentor request status
+    mentorRequest.status = "approved";
+    mentorRequest.rejectionReason = null;
+    await mentorRequest.save();
 
-
-  await Mentor.findOneAndUpdate(
+    // 3️⃣ Create / update mentor profile
+    await Mentor.findOneAndUpdate(
       { userId: mentorRequest.userId },
+      { isActive: true },
+      { upsert: true }
     );
 
-  const user = await User.findById(mentorRequest.userId);
-  user.role = "mentor";
-  user.mentorStatus = "approved";
-  await user.save();
+    // 4️⃣ Update user role
+    const user = await User.findById(mentorRequest.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-  res.status(200).json({
-    success: true,
-    message: "Mentor approved",
-  });
+    user.role = "mentor";
+    user.mentorStatus = "approved";
+    await user.save();
+
+    // 5️⃣ Send approval email (safe)
+    try {
+      await transporter.sendMail({
+        from: `"SkillSwap" <${process.env.EMAIL_USER}>`,
+        to: user.email,
+        subject: "🎉 You’re Approved as a Mentor!",
+        html: `
+          <div style="font-family: Arial, sans-serif;">
+            <h2>Congratulations ${user.username}! 🎉</h2>
+            <p>Your mentor request has been <strong>approved</strong>.</p>
+            <p>You are now officially a mentor on <strong>SkillSwap</strong>.</p>
+            <p>You can start connecting with learners and sharing your skills.</p>
+            <br />
+            <p>Welcome aboard 🚀</p>
+            <p><strong>— SkillSwap Team</strong></p>
+          </div>
+        `,
+      });
+    } catch (emailErr) {
+      console.error("MENTOR APPROVAL EMAIL ERROR:", emailErr.message);
+    }
+
+    // 6️⃣ Response
+    return res.status(200).json({
+      success: true,
+      message: "Mentor approved successfully",
+    });
+  } catch (error) {
+    console.error("APPROVE MENTOR ERROR:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
+  }
 };
+
 
 const rejectMentorRequest = async (req, res) => {
-  const { id } = req.params;
-  const { reason } = req.body;
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
 
-  if (!reason || reason.trim().length < 5) {
-    return res.status(400).json({ message: "Valid reason required" });
+    // 1️⃣ Validate reason
+    if (!reason || reason.trim().length < 5) {
+      return res.status(400).json({
+        message: "Valid rejection reason required",
+      });
+    }
+
+    // 2️⃣ Find mentor request
+    const mentorRequest = await MentorRequest.findById(id);
+    if (!mentorRequest) {
+      return res.status(404).json({ message: "Request not found" });
+    }
+
+    // 3️⃣ Update mentor request
+    mentorRequest.status = "rejected";
+    mentorRequest.rejectionReason = reason;
+    await mentorRequest.save();
+
+    // 4️⃣ Update user
+    const user = await User.findById(mentorRequest.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    user.role = "user";
+    user.mentorStatus = "rejected";
+    await user.save();
+
+    // 5️⃣ Send rejection email (safe)
+    try {
+      await transporter.sendMail({
+        from: `"SkillSwap" <${process.env.EMAIL_USER}>`,
+        to: user.email,
+        subject: "Mentor Request Update ❌",
+        html: `
+          <div style="font-family: Arial, sans-serif;">
+            <h2>Hello ${user.username},</h2>
+            <p>Thank you for applying to become a mentor on <strong>SkillSwap</strong>.</p>
+            <p>After reviewing your request, we regret to inform you that it has been <strong>rejected</strong>.</p>
+
+            <p><strong>Reason:</strong></p>
+            <blockquote style="background:#f8f8f8;padding:10px;border-left:4px solid #f44336;">
+              ${reason}
+            </blockquote>
+
+            <p>You may improve your profile and apply again in the future.</p>
+            <br />
+            <p>We appreciate your interest 🙏</p>
+            <p><strong>— SkillSwap Team</strong></p>
+          </div>
+        `,
+      });
+    } catch (emailErr) {
+      console.error("MENTOR REJECTION EMAIL ERROR:", emailErr.message);
+    }
+
+    // 6️⃣ Response
+    return res.status(200).json({
+      success: true,
+      message: "Mentor request rejected successfully",
+    });
+
+  } catch (error) {
+    console.error("REJECT MENTOR ERROR:", error);
+    return res.status(500).json({
+      message: "Internal server error",
+    });
   }
-
-  const mentorRequest = await MentorRequest.findById(id);
-  if (!mentorRequest)
-    return res.status(404).json({ message: "Request not found" });
-
-  mentorRequest.status = "rejected";
-  mentorRequest.rejectionReason = reason;
-  await mentorRequest.save();
-
-  const user = await User.findById(mentorRequest.userId);
-  user.role = "user";
-  user.mentorStatus = "rejected";
-  await user.save();
-
-  res.status(200).json({
-    success: true,
-    message: "Mentor request rejected",
-  });
 };
+
 
 const deleteMentorByID = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const user = await User.findByIdAndUpdate(id, {
-      role: "user",
-      mentorStatus: "none"
-    }, {
-      new: true
-    });
+    // 1️⃣ Update user role
+    const user = await User.findByIdAndUpdate(
+      id,
+      {
+        role: "user",
+        mentorStatus: "none",
+      },
+      { new: true }
+    );
 
     if (!user) {
       return res.status(404).json({
-        message: "no user find by these id"
-      })
+        message: "No user found with this ID",
+      });
     }
-    const mentorRequest = await MentorRequest.findOneAndUpdate({ userId: id },
+
+    // 2️⃣ Update mentor request status
+    const mentorRequest = await MentorRequest.findOneAndUpdate(
+      { userId: id },
       { status: "removed" },
-      { new: true });
+      { new: true }
+    );
 
     if (!mentorRequest) {
       return res.status(404).json({
         message: "No mentor request found for this user",
       });
     }
+
+    // 3️⃣ Delete mentor profile
     const mentor = await Mentor.findOneAndDelete({ userId: id });
     if (!mentor) {
       return res.status(404).json({
-        message: "no mentor find by these id"
-      })
+        message: "No mentor found for this user",
+      });
     }
 
+    // 4️⃣ Send mentor removal email (safe)
+    try {
+      await transporter.sendMail({
+        from: `"SkillSwap" <${process.env.EMAIL_USER}>`,
+        to: user.email,
+        subject: "Mentor Role Removed ❗",
+        html: `
+          <div style="font-family: Arial, sans-serif;">
+            <h2>Hello ${user.username},</h2>
+            <p>We would like to inform you that your <strong>mentor role</strong> on SkillSwap has been removed by the admin.</p>
+            <p>You are now reverted back to a regular user account.</p>
+            <p>If you believe this was a mistake, please contact our support team.</p>
+            <br />
+            <p>Regards,</p>
+            <p><strong>— SkillSwap Team</strong></p>
+          </div>
+        `,
+      });
+    } catch (emailErr) {
+      console.error("MENTOR DELETE EMAIL ERROR:", emailErr.message);
+    }
+
+    // 5️⃣ Response
     return res.status(200).json({
-      message: "mentor deteled successfully and upadted the role",
+      success: true,
+      message: "Mentor deleted successfully and role updated",
       user,
-    })
+    });
   } catch (error) {
+    console.error("DELETE MENTOR ERROR:", error);
     return res.status(500).json({
       message: "Failed to remove mentor",
       error: error.message,
     });
   }
-}
+};
+
 
 const deleteUserByID = async (req, res) => {
   try {

@@ -30,12 +30,18 @@ import Settings from "./dashBoards/adminDashboard/pages/Settings";
 import ProtectedRoute from "../routes/protectedRoutes";
 import MentorProtectedRoute from "../routes/MentorProtectedRoutes";
 import AdminLayout from "./dashBoards/adminDashboard/AdminLayout";
+import ResetPassword from "./pages/ResetPassword";
+import ForgotPassword from "./pages/ForgetPassword";
+import ChatPage from "./pages/ChatPage";
+
 
 const router = createBrowserRouter([
   // ---------- PUBLIC ----------
   { path: "/", element: <App /> },
   { path: "/register", element: <Register /> },
   { path: "/login", element: <Login /> },
+  {path:"/reset-password/:token",element:<ResetPassword/>},
+  {path:"/forgot-password",element:<ForgotPassword/>},
 
   // ---------- PROTECTED ROUTES ----------
   {
@@ -44,6 +50,8 @@ const router = createBrowserRouter([
       // { path: "/dashboard", element: <UserDashBoards /> },
       {path:"/dashboard",element:<UserDashBoards/>},
       { path: "/profile", element: <ProfilePage /> },
+      { path: "/chat", element: <ChatPage /> },
+      { path: "/chat/:conversationId", element: <ChatPage /> },
 
       // ===== MENTOR ROUTES (ALL UNDER /mentor) =====
       {

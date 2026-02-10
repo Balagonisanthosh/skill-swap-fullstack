@@ -5,7 +5,7 @@ const MentorRequest = require("../models/mentorRequest");
 const Mentor = require("../models/Mentor");
 const { generateAccessToken, generateRefreshToken } = require("../utils/Tokens");
 const ConnectionRequest = require("../models/ConnectionRequest");
-const transporter  = require("../config/EmailTransporter");
+const transporter = require("../config/EmailTransporter");
 require("dotenv").config();
 
 
@@ -66,21 +66,27 @@ const register = async (req, res) => {
       mentorStatus: "none",
     });
 
-     await transporter.sendMail({
-      from: `"SkillSwap" <skillswapalerts@gmail.com>`,
-      to: email,
-      subject: "Welcome to SkillSwap 🎉",
-      html: `
-        <div style="font-family: Arial, sans-serif;">
-          <h2>Welcome, ${username} 👋</h2>
-          <p>Your SkillSwap account has been created successfully.</p>
-          <p>You can now start learning and sharing skills.</p>
-          <br />
-          <p>Happy Skill Swapping 🚀</p>
-          <p><strong>— SkillSwap Team</strong></p>
-        </div>
-      `
-    });
+    // ✅ Send welcome email (DO NOT BLOCK REGISTRATION)
+    try {
+      await transporter.sendMail({
+        from: process.env.EMAIL_USER,
+        to: email,
+        subject: "Welcome to SkillSwap 🎉",
+        html: `
+      <div style="font-family: Arial, sans-serif;">
+        <h2>Welcome, ${username} 👋</h2>
+        <p>Your SkillSwap account has been created successfully.</p>
+        <p>You can now start learning and sharing skills.</p>
+        <br />
+        <p>Happy Skill Swapping 🚀</p>
+        <p><strong>— SkillSwap Team</strong></p>
+      </div>
+    `,
+      });
+    } catch (err) {
+      console.error("EMAIL ERROR:", err.message);
+    }
+
 
     return res.status(201).json({
       success: true,
@@ -213,19 +219,25 @@ const applyMentorRequest = async (req, res) => {
     const userId = req.user.id;
     const { linkedInURL } = req.body;
 
+    // 1️⃣ Validate input
     if (!linkedInURL || !req.file) {
       return res.status(400).json({
         message: "LinkedIn URL and video are required",
       });
     }
 
+    // 2️⃣ Find user
     const user = await User.findById(userId);
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
+    // 3️⃣ Block if already mentor
     if (user.role === "mentor") {
       return res.status(400).json({ message: "Already a mentor" });
     }
 
+    // 4️⃣ Check existing mentor request
     let mentorRequest = await MentorRequest.findOne({ userId });
 
     if (mentorRequest) {
@@ -235,6 +247,7 @@ const applyMentorRequest = async (req, res) => {
         });
       }
 
+      // Re-apply after rejection
       mentorRequest.status = "pending";
       mentorRequest.rejectionReason = null;
       mentorRequest.uploadVideo = req.file.path;
@@ -249,9 +262,33 @@ const applyMentorRequest = async (req, res) => {
       });
     }
 
+    // 5️⃣ Update user mentor status
     user.mentorStatus = "pending";
     await user.save();
 
+    // 6️⃣ Send confirmation email (DO NOT BLOCK REQUEST)
+    try {
+      await transporter.sendMail({
+        from: `"SkillSwap" <${process.env.EMAIL_USER}>`,
+        to: user.email,
+        subject: "Mentor Request Submitted 🚀",
+        html: `
+          <div style="font-family: Arial, sans-serif;">
+            <h2>Mentor Request Received</h2>
+            <p>Hello <strong>${user.username}</strong>,</p>
+            <p>Your mentor request has been submitted successfully.</p>
+            <p>Our team will review your profile and notify you once a decision is made.</p>
+            <br />
+            <p>Thank you for your patience 🙌</p>
+            <p><strong>— SkillSwap Team</strong></p>
+          </div>
+        `,
+      });
+    } catch (emailErr) {
+      console.error("MENTOR REQUEST EMAIL ERROR:", emailErr.message);
+    }
+
+    // 7️⃣ Final response
     return res.status(200).json({
       success: true,
       message: "Mentor request submitted successfully",
@@ -259,9 +296,12 @@ const applyMentorRequest = async (req, res) => {
 
   } catch (error) {
     console.error("MENTOR REQUEST ERROR:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({
+      message: "Internal server error",
+    });
   }
 };
+
 
 
 // ===================== GET MY MENTOR REQUEST STATUS =====================
@@ -442,11 +482,11 @@ const getMentorConnectionRequests = async (req, res) => {
 
     const requests = await ConnectionRequest.find({
       mentorId: mentor._id,
-      status: "pending", 
+      status: "pending",
     })
       .populate("userId", "username email profileImage skillsYouKnown")
       .sort({ createdAt: -1 });
-      const connectionsCount = await ConnectionRequest.countDocuments({
+    const connectionsCount = await ConnectionRequest.countDocuments({
       mentorId: mentor._id,
       status: "accepted",
     });
@@ -502,6 +542,113 @@ const respondToConnectionRequest = async (req, res) => {
   }
 };
 
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    // 1️⃣ Find user
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // 2️⃣ Generate JWT reset token
+    const resetToken = jwt.sign(
+      { id: user._id },
+      process.env.RESET_PASSWORD_SECRET,
+      { expiresIn: "15m" }
+    );
+
+    // 3️⃣ Reset link (frontend)
+    const resetURL = `http://localhost:5173/reset-password/${resetToken}`;
+
+    // 4️⃣ Send email (safe)
+    try {
+      await transporter.sendMail({
+        from: `"SkillSwap" <skillswapalerts@gmail.com>`,
+        to: user.email,
+        subject: "Reset your SkillSwap password",
+        html: `
+          <div style="font-family: Arial, sans-serif;">
+            <h2>Password Reset</h2>
+            <p>You requested to reset your password.</p>
+            <p>This link is valid for <strong>15 minutes</strong>.</p>
+            <a href="${resetURL}" target="_blank">
+              Reset Password
+            </a>
+            <p>If you did not request this, ignore this email.</p>
+          </div>
+        `,
+      });
+    } catch (emailErr) {
+      console.error("EMAIL ERROR:", emailErr.message);
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset link sent to email",
+    });
+  } catch (error) {
+    console.error("FORGOT PASSWORD ERROR:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+};
+
+const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    // 1️⃣ Validate input
+    if (!password) {
+      return res.status(400).json({
+        message: "New password is required",
+      });
+    }
+
+    // 2️⃣ Verify reset token
+    const decoded = jwt.verify(
+      token,
+      process.env.RESET_PASSWORD_SECRET
+    );
+
+    // 3️⃣ Find user
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found",
+      });
+    }
+
+    // 4️⃣ Hash new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // 5️⃣ Update password
+    user.password = hashedPassword;
+
+    // OPTIONAL: invalidate refresh token
+    user.refreshToken = null;
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Password reset successful",
+    });
+  } catch (error) {
+    console.error("RESET PASSWORD ERROR:", error);
+
+    return res.status(400).json({
+      message: "Reset link is invalid or expired",
+    });
+  }
+};
+
+
 
 const logout = async (req, res) => {
   try {
@@ -534,5 +681,5 @@ module.exports = {
   getProfile,
   updateProfile,
   applyMentorRequest,
-  getMyMentorRequestStatus, fetchMentors, refreshToken, sendConnectionRequest, getUserConnectionRequests, getMentorConnectionRequests, respondToConnectionRequest, logout
+  getMyMentorRequestStatus, fetchMentors, refreshToken, sendConnectionRequest, getUserConnectionRequests, getMentorConnectionRequests, respondToConnectionRequest, forgotPassword, resetPassword, logout
 };
