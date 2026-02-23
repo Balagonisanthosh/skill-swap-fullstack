@@ -10,7 +10,6 @@ const Dashboard_Navbar = () => {
   const { conversations, fetchConversations } = useChatStore();
 
   useEffect(() => {
-    // ensure sidebar conversations (and unread counts) are loaded for badge
     fetchConversations();
   }, []);
 

@@ -20,7 +20,6 @@ const Users = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  // ❌ Remove user handler
   const handleRemoveUser = async (userId) => {
     const confirmDelete = window.confirm(
       "Are you sure you want to delete this user? This action cannot be undone."
@@ -30,13 +29,11 @@ const Users = () => {
 
     await deleteUserById(userId);
 
-    // 🔥 Update UI instantly
     setUsers((prev) => prev.filter((user) => user._id !== userId));
 
     alert("User deleted successfully!");
   };
 
-  // 📦 Fetch users
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -44,7 +41,7 @@ const Users = () => {
         setError(null);
 
         const res = await fetch(
-          "http://localhost:3000/api/admin/getusersList",
+          "https://skill-swap-fullstack.onrender.com/api/admin/getusersList",
           {
             method: "GET",
             headers: {

@@ -28,7 +28,7 @@ const UserDashBoards = () => {
     fetchUserConnectionRequests,
     sendConnectionRequest,
     user,
-    token, // ✅ REQUIRED FOR CHAT
+    token, 
   } = useAuthStore();
 
   const navigate = useNavigate();

@@ -22,7 +22,7 @@ const MentorRequests = () => {
     const fetchMentors = async () => {
       try {
         const res = await fetch(
-          "http://localhost:3000/api/admin/mentorsRequest",
+          "https://skill-swap-fullstack.onrender.com/api/admin/mentorsRequest",
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -48,7 +48,7 @@ const MentorRequests = () => {
   const handleApprove = async (requestId) => {
     try {
       const res = await fetch(
-        `http://localhost:3000/api/admin/mentor-requests/${requestId}/approve`,
+        `https://skill-swap-fullstack.onrender.com/api/admin/mentor-requests/${requestId}/approve`,
         {
           method: "PUT",
           headers: {
@@ -67,7 +67,6 @@ const MentorRequests = () => {
         )
       );
 
-      // ✅ REFRESH DASHBOARD COUNTS
       fetchDashboardStats();
     } catch (err) {
       alert(err.message);
@@ -83,7 +82,7 @@ const MentorRequests = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:3000/api/admin/mentor-requests/${selectedRequestId}/reject`,
+        `https://skill-swap-fullstack.onrender.com/api/admin/mentor-requests/${selectedRequestId}/reject`,
         {
           method: "PUT",
           headers: {
