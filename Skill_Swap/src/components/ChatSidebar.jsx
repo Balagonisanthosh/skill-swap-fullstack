@@ -56,7 +56,7 @@ export default function ChatSidebar() {
   }
 
   return (
-    <div className="w-80 border-r bg-white overflow-y-auto">
+    <div className="w-80 border-r bg-gray-200 overflow-y-auto">
       <div className="p-4 border-b">
         <input
           value={searchTerm}

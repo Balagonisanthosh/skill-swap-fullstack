@@ -7,9 +7,9 @@ const { generateAccessToken, generateRefreshToken } = require("../utils/Tokens")
 const ConnectionRequest = require("../models/ConnectionRequest");
 const transporter = require("../config/EmailTransporter");
 require("dotenv").config();
+const { redisClient } = require("../config/redis");
 
 
-// ===================== REGISTER =====================
 const register = async (req, res) => {
   try {
     const {
@@ -102,11 +102,10 @@ const register = async (req, res) => {
   }
 };
 
-
-// ===================== LOGIN =====================
 const login = async (req, res) => {
-  try {
+   try {
     const { email, password } = req.body;
+
 
     if (!email || !password) {
       return res.status(400).json({
@@ -128,21 +127,23 @@ const login = async (req, res) => {
       });
     }
 
-    // 🔑 Generate tokens
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
-    // 🔐 Hash refresh token before saving
     const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
     user.refreshToken = hashedRefreshToken;
+    // await redisClient.setEx(
+    //   `refreshtoken:${user._id}`,
+    //   7*24*60*60,
+    //   refreshToken,
+    // )
     await user.save();
 
-    // 🍪 Send refresh token as HttpOnly cookie
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      sameSite: "lax",   // ✅ MUST be lax for localhost cross-origin
-      secure: false,    // ✅ MUST be false on http
-      path: "/",        // ✅ important
+      sameSite: "lax",
+      secure: false,
+      path: "/",
     });
 
     return res.status(200).json({
@@ -167,18 +168,59 @@ const login = async (req, res) => {
   }
 };
 
-// ===================== GET PROFILE =====================
 const getProfile = async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select("-password");
+    const userId = req.user.id;
+    const cacheKey = `profile:${userId}`;
+
+    // 🔥 Try getting hash
+    const cachedProfile = await redisClient.hGetAll(cacheKey);
+
+    if (Object.keys(cachedProfile).length > 0) {
+      console.log("📦 Serving profile from Redis (HSET)");
+
+      // Convert arrays back (because Redis stores everything as string)
+      cachedProfile.skillsYouKnown = JSON.parse(cachedProfile.skillsYouKnown);
+      cachedProfile.skillsYouWantToLearn = JSON.parse(cachedProfile.skillsYouWantToLearn);
+
+      return res.status(200).json({ user: cachedProfile });
+    }
+
+    console.log("🗄️ Serving profile from MongoDB");
+
+    const user = await User.findById(userId)
+      .select("-password -refreshToken");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // 🔥 Store in Redis as HASH
+    await redisClient.hSet(cacheKey, {
+      _id: user._id.toString(),
+      username: user.username,
+      email: user.email,
+      skillsYouKnown: JSON.stringify(user.skillsYouKnown),
+      skillsYouWantToLearn: JSON.stringify(user.skillsYouWantToLearn),
+      profileImage: user.profileImage || "",
+      role: user.role,
+      mentorStatus: user.mentorStatus,
+      createdAt: user.createdAt.toString(),
+      updatedAt: user.updatedAt.toString(),
+      provider: user.provider || "local"
+    });
+
+    // Set expiry
+    await redisClient.expire(cacheKey, 300);
+
     return res.status(200).json({ user });
+
   } catch (error) {
+    console.error("PROFILE ERROR:", error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
 
-
-// ===================== UPDATE PROFILE =====================
 const updateProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user.id);
@@ -205,6 +247,7 @@ const updateProfile = async (req, res) => {
     }
 
     await user.save();
+    await redisClient.del(`profile:${req.user.id}`);
 
     return res.status(200).json({ user });
   } catch (error) {
@@ -212,8 +255,6 @@ const updateProfile = async (req, res) => {
   }
 };
 
-
-// ===================== APPLY / RE-APPLY MENTOR REQUEST =====================
 const applyMentorRequest = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -302,9 +343,6 @@ const applyMentorRequest = async (req, res) => {
   }
 };
 
-
-
-// ===================== GET MY MENTOR REQUEST STATUS =====================
 const getMyMentorRequestStatus = async (req, res) => {
   try {
     const mentorRequest = await MentorRequest.findOne({
@@ -354,7 +392,6 @@ const fetchMentors = async (req, res) => {
 
 const refreshToken = async (req, res) => {
   try {
-    // 1️⃣ Get refresh token from cookie
     const refreshTokenFromCookie = req.cookies.refreshToken;
 
     if (!refreshTokenFromCookie) {
@@ -363,13 +400,11 @@ const refreshToken = async (req, res) => {
       });
     }
 
-    // 2️⃣ Verify refresh token JWT
     const decoded = jwt.verify(
       refreshTokenFromCookie,
       process.env.REFRESH_TOKEN_SECRET
     );
 
-    // 3️⃣ Find user in DB
     const user = await User.findById(decoded.id);
     if (!user || !user.refreshToken) {
       return res.status(403).json({
@@ -377,7 +412,6 @@ const refreshToken = async (req, res) => {
       });
     }
 
-    // 4️⃣ Compare hashed refresh token
     const isValid = await bcrypt.compare(
       refreshTokenFromCookie,
       user.refreshToken
@@ -389,14 +423,12 @@ const refreshToken = async (req, res) => {
       });
     }
 
-    // 5️⃣ Rotate tokens (IMPORTANT)
     const newAccessToken = generateAccessToken(user);
     const newRefreshToken = generateRefreshToken(user);
 
     user.refreshToken = await bcrypt.hash(newRefreshToken, 10);
     await user.save();
 
-    // 6️⃣ Send new refresh token as HttpOnly cookie
     res.cookie("refreshToken", newRefreshToken, {
       httpOnly: true,
       sameSite: "lax",
@@ -404,7 +436,6 @@ const refreshToken = async (req, res) => {
       path: "/",
     });
 
-    // 7️⃣ Send new access token
     return res.status(200).json({
       accessToken: newAccessToken,
     });
@@ -498,8 +529,6 @@ const getMentorConnectionRequests = async (req, res) => {
   }
 };
 
-
-// ================= ACCEPT / REJECT CONNECTION REQUEST =================
 const respondToConnectionRequest = async (req, res) => {
   try {
     const mentorUserId = req.user.id;

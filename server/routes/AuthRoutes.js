@@ -1,33 +1,88 @@
 const express = require("express");
 const router = express.Router();
-const upload = require("../middleware/Upload");
-const { register, login, getProfile, updateProfile, applyMentorRequest, getMyMentorRequestStatus, fetchMentors, refreshToken, logout, sendConnectionRequest, getUserConnectionRequests, getMentorConnectionRequests, respondToConnectionRequest, forgotPassword, resetPassword } = require("../controllers/auth-Controller");
-const authMiddleware = require("../middleware/authMiddleWare");
-const uploadVideo = require("../middleware/uploadVideo");
 
+const upload = require("../middleware/Upload");
+const uploadVideo = require("../middleware/uploadVideo");
+const authMiddleware = require("../middleware/authMiddleWare");
+
+
+const {
+  register,
+  login,
+  getProfile,
+  updateProfile,
+  applyMentorRequest,
+  getMyMentorRequestStatus,
+  fetchMentors,
+  refreshToken,
+  logout,
+  sendConnectionRequest,
+  getUserConnectionRequests,
+  getMentorConnectionRequests,
+  respondToConnectionRequest,
+  forgotPassword,
+  resetPassword,
+} = require("../controllers/auth-Controller");
 
 
 
 router.post("/register", upload.single("photo"), register);
 
 router.post("/login", login);
- 
 
 router.get("/profile", authMiddleware, getProfile);
 
-router.put("/profile", authMiddleware, upload.single("photo"), updateProfile);
-router.post('/user/applyMentor',authMiddleware,uploadVideo.single("uploadVideo"), applyMentorRequest);
+router.put(
+  "/profile",
+  authMiddleware,
+  upload.single("photo"),
+  updateProfile
+);
 
-router.get("/mentor-request/user", authMiddleware, getMyMentorRequestStatus);
-router.get("/mentorsList",authMiddleware,fetchMentors);
+router.post(
+  "/user/applyMentor",
+  authMiddleware,
+  uploadVideo.single("uploadVideo"),
+  applyMentorRequest
+);
+
+router.get(
+  "/mentor-request/user",
+  authMiddleware,
+  getMyMentorRequestStatus
+);
+
+router.get("/mentorsList", authMiddleware, fetchMentors);
+
 router.post("/refresh", refreshToken);
-router.post("/connectionRequest",authMiddleware,sendConnectionRequest);
-router.get("/connectionRequest/user",authMiddleware,getUserConnectionRequests);
-router.get("/connectionRequest/mentor",authMiddleware,getMentorConnectionRequests);
-router.patch("/connectionRequest/:id",authMiddleware,respondToConnectionRequest);
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password/:token", resetPassword);
 
+router.post(
+  "/connectionRequest",
+  authMiddleware,
+  sendConnectionRequest
+);
+
+router.get(
+  "/connectionRequest/user",
+  authMiddleware,
+  getUserConnectionRequests
+);
+
+router.get(
+  "/connectionRequest/mentor",
+  authMiddleware,
+  getMentorConnectionRequests
+);
+
+router.patch(
+  "/connectionRequest/:id",
+  authMiddleware,
+  respondToConnectionRequest
+);
+
+router.post("/forgot-password", forgotPassword);
+
+router.post("/reset-password/:token", resetPassword);
 
 
 router.post("/logout", logout);

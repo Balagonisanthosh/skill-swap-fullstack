@@ -2,6 +2,9 @@ const express = require("express");
 const cors = require("cors");
 const connectToDb = require("./config/db");
 require("dotenv").config();
+const helmet = require("helmet");
+// require("./config/redis");
+const { connectRedis } = require("./config/redis");
 const adminRoute = require("./routes/AdminRoutes");
 const authRoute = require("./routes/AuthRoutes");
 const mentorRoute = require("./routes/mentorRoute");
@@ -10,21 +13,19 @@ const http = require("http");
 const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
 const Conversation = require("./models/Conversation");
-
-
-// 🔹 CHAT MODELS
 const Message = require("./models/Message");
-
 const chatRoutes = require("./routes/ChatRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
 
 // ---------------- MIDDLEWARE ----------------
 app.use(
   cors({
     origin: [
       "http://localhost:5173",
+      "http://localhost:5174",
       "http://localhost:3000",
       "https://skill-swap-fullstack.vercel.app",
     ],
@@ -35,6 +36,12 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use("/api", (req, res, next) => {
+  res.set("Cache-Control", "no-store");
+  next();
+});
+app.disable("x-powered-by");
+app.use(helmet());
 app.use("/uploads", express.static("uploads"));
 
 // ---------------- ROUTES ----------------
@@ -125,7 +132,9 @@ io.on("connection", (socket) => {
 // ---------------- DATABASE + SERVER ----------------
 async function databaseConnection() {
   try {
+    await connectRedis();
     await connectToDb();
+    require('./cron/encourageUsers');
     server.listen(PORT, () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });

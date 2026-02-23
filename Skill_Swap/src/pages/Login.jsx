@@ -59,9 +59,7 @@ const Login = () => {
 
         {/* Error message */}
         {error && (
-          <p className="text-red-500 text-sm mt-2 text-center">
-            {error}
-          </p>
+          <p className="text-red-500 text-sm mt-2 text-center">{error}</p>
         )}
 
         {/* Forgot password */}
