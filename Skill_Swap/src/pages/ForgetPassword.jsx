@@ -14,7 +14,7 @@ const ForgotPassword = () => {
 
     try {
       const response = await fetch(
-        "http://localhost:3000/api/auth/forgot-password",
+        "https://skill-swap-fullstack-1-8y82.onrender.com/api/auth/forgot-password",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
