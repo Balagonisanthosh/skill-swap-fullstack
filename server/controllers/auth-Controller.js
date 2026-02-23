@@ -593,7 +593,7 @@ const forgotPassword = async (req, res) => {
     );
 
     // 3️⃣ Reset link (frontend)
-    const resetURL = `http://localhost:5173/reset-password/${resetToken}`;
+    const resetURL = `https://skill-swap-fullstack-1-8y82.onrender.com/reset-password/${resetToken}`;
 
     // 4️⃣ Send email (safe)
     try {
