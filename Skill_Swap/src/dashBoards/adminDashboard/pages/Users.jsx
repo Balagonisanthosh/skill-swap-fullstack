@@ -41,7 +41,7 @@ const Users = () => {
         setError(null);
 
         const res = await fetch(
-          "https://skill-swap-fullstack.onrender.com/api/admin/getusersList",
+          "https://skill-swap-fullstack-1-8y82.onrender.com/api/admin/getusersList",
           {
             method: "GET",
             headers: {

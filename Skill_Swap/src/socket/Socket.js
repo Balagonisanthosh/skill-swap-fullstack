@@ -5,7 +5,7 @@ let socket;
 export const connectSocket = (token) => {
   if (socket) return socket;
 
-  socket = io("http://localhost:3000", {
+  socket = io("https://skill-swap-fullstack-1-8y82.onrender.com", {
     transports: ["websocket"],       // 🔴 force websocket
     withCredentials: true,           // 🔴 REQUIRED
     auth: {

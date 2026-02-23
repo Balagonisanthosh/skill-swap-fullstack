@@ -18,7 +18,7 @@ const RequestMentorForm = ({ onClose }) => {
 
     try {
       const res = await fetch(
-        "https://skill-swap-fullstack.onrender.com/api/auth/user/applyMentor",
+        "https://skill-swap-fullstack-1-8y82.onrender.com/api/auth/user/applyMentor",
         {
           method: "POST",
           headers: {

@@ -2,8 +2,7 @@ import { create } from "zustand";
 import { useAuthStore } from "./authStore";
 
 // ✅ HARD-CODE BASE URL (NO .env)
-const BASE_URL="https://skill-swap-fullstack.onrender.com"
-// const BASE_URL="https://skill-swap-fullstack.onrender.com"
+const BASE_URL="https://skill-swap-fullstack-1-8y82.onrender.com"
 const MENTOR_API_URL = `${BASE_URL}/api/mentors`;
 const AUTH_API_URL = `${BASE_URL}/api/auth`;
 
@@ -21,7 +20,7 @@ const useMentorStore = create((set) => ({
 
       const res = await fetchWithAuth(
         `${MENTOR_API_URL}/mentor/me`,
-        { cache: "no-store" } // ✅ avoid cached 304
+        { cache: "no-store" } //
       );
 
       const data = await res.json();
