@@ -1,7 +1,7 @@
 const { createClient } = require("redis");
 
 const redisClient = createClient({
-  url: "redis://localhost:6379",
+  url: process.env.REDIS_URL || "redis://localhost:6379",
 });
 
 redisClient.on("error", (err) => {
@@ -9,8 +9,12 @@ redisClient.on("error", (err) => {
 });
 
 const connectRedis = async () => {
-  await redisClient.connect();
-  console.log("✅ Redis Connected");
+  try {
+    await redisClient.connect();
+    console.log("✅ Redis Connected");
+  } catch (error) {
+    console.error("❌ Redis Connection Failed:", error);
+  }
 };
 
 module.exports = {
