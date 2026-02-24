@@ -2,7 +2,12 @@ import { create } from "zustand";
 import { useAuthStore } from "./authStore";
 
 // ✅ HARD-CODE BASE URL (NO .env)
-const BASE_URL="https://skill-swap-fullstack-1-8y82.onrender.com"
+// const BASE_URL="https://skill-swap-fullstack-1-8y82.onrender.com"
+const BASE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:3000"
+    : "https://skill-swap-fullstack-1-8y82.onrender.com";
+
 const MENTOR_API_URL = `${BASE_URL}/api/mentors`;
 const AUTH_API_URL = `${BASE_URL}/api/auth`;
 

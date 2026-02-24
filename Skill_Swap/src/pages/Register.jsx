@@ -21,6 +21,11 @@ const Register = () => {
 
   const navigate = useNavigate();
 
+  const API_BASE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:3000"
+    : "https://skill-swap-fullstack-1-8y82.onrender.com";
+
   // ✅ Add skill on Enter
   const addSkill = (e, inputValue, setInput, skills, setSkills) => {
     if (e.key === "Enter") {
@@ -65,7 +70,7 @@ const Register = () => {
       if (photo) formData.append("photo", photo);
 
       const response = await fetch(
-        "http://localhost:3000/api/auth/register",
+        `${API_BASE_URL}/api/auth/register` ,
         {
           method: "POST",
           body: formData,

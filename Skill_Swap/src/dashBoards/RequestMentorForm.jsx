@@ -4,6 +4,14 @@ const RequestMentorForm = ({ onClose }) => {
   const [linkedinUrl, setLinkedinUrl] = useState("");
   const [video, setVideo] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+
+  const BASE_URL =
+    window.location.hostname === "localhost"
+      ? "http://localhost:3000"
+      : "https://skill-swap-fullstack-1-8y82.onrender.com";
+
+  const AUTH_API_URL = `${BASE_URL}/api/auth`;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -18,7 +26,7 @@ const RequestMentorForm = ({ onClose }) => {
 
     try {
       const res = await fetch(
-        "https://skill-swap-fullstack-1-8y82.onrender.com/api/auth/user/applyMentor",
+       `${AUTH_API_URL}/user/applyMentor`,
         {
           method: "POST",
           headers: {

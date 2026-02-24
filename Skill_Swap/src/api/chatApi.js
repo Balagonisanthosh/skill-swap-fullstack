@@ -1,6 +1,10 @@
 import { fetchWithAuth } from "./fetchWithAuth";
 
-const BASE_URL = "https://skill-swap-fullstack-1-8y82.onrender.com/api/chat";
+const BASE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:3000/api/chat"
+    : "https://skill-swap-fullstack-1-8y82.onrender.com/api/chat";
+
 
 export const chatApi = {
   // ================= GET OR CREATE CONVERSATION =================

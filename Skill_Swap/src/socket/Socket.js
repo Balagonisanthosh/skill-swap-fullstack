@@ -1,11 +1,15 @@
 import { io } from "socket.io-client";
 
 let socket;
+const SERVER_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:3000"
+    : "https://skill-swap-fullstack-1-8y82.onrender.com";
 
 export const connectSocket = (token) => {
   if (socket) return socket;
 
-  socket = io("https://skill-swap-fullstack-1-8y82.onrender.com", {
+  socket = io(SERVER_URL, {
     transports: ["websocket"],       // 🔴 force websocket
     withCredentials: true,           // 🔴 REQUIRED
     auth: {

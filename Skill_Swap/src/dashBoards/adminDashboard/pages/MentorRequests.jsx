@@ -17,12 +17,19 @@ const MentorRequests = () => {
   // 🔥 Dashboard refresh function
   const { fetchDashboardStats } = useAdminStore();
 
+  const BASE_URL =
+  window.location.hostname === "localhost"
+    ? "http://localhost:3000"
+    : "https://skill-swap-fullstack-1-8y82.onrender.com";
+
+const ADMIN_API_URL = `${BASE_URL}/api/admin`;
+
   // ---------------- FETCH MENTOR REQUESTS ----------------
   useEffect(() => {
     const fetchMentors = async () => {
       try {
         const res = await fetch(
-          "https://skill-swap-fullstack-1-8y82.onrender.com/api/admin/mentorsRequest",
+          `${ADMIN_API_URL}/mentorsRequest`,
           {
             headers: {
               Authorization: `Bearer ${localStorage.getItem("token")}`,
@@ -48,7 +55,7 @@ const MentorRequests = () => {
   const handleApprove = async (requestId) => {
     try {
       const res = await fetch(
-        `https://skill-swap-fullstack-1-8y82.onrender.com/api/admin/mentor-requests/${requestId}/approve`,
+       `${ADMIN_API_URL}/mentor-requests/${requestId}/approve`,
         {
           method: "PUT",
           headers: {
@@ -82,7 +89,7 @@ const MentorRequests = () => {
 
     try {
       const res = await fetch(
-        `https://skill-swap-fullstack-1-8y82.onrender.com/api/admin/mentor-requests/${selectedRequestId}/reject`,
+        `${ADMIN_API_URL}/mentor-requests/${selectedRequestId}/reject`,
         {
           method: "PUT",
           headers: {

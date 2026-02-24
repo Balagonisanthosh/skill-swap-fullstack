@@ -11,6 +11,13 @@ const Users = () => {
 
   const { deleteUserById } = useAdminStore();
 
+  const BASE_URL =
+    window.location.hostname === "localhost"
+      ? "http://localhost:3000"
+      : "https://skill-swap-fullstack-1-8y82.onrender.com";
+
+  const ADMIN_API_URL = `${BASE_URL}/api/admin`;
+
   // 🔁 Debounce search input
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -22,7 +29,7 @@ const Users = () => {
 
   const handleRemoveUser = async (userId) => {
     const confirmDelete = window.confirm(
-      "Are you sure you want to delete this user? This action cannot be undone."
+      "Are you sure you want to delete this user? This action cannot be undone.",
     );
 
     if (!confirmDelete) return;
@@ -40,15 +47,12 @@ const Users = () => {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(
-          "https://skill-swap-fullstack-1-8y82.onrender.com/api/admin/getusersList",
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        const res = await fetch(`${ADMIN_API_URL}/getusersList`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
 
         if (!res.ok) {
           throw new Error("Failed to fetch users list");
@@ -70,7 +74,7 @@ const Users = () => {
   const filteredUsers = users.filter(
     (user) =>
       user.username.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
-      user.email.toLowerCase().includes(debouncedSearch.toLowerCase())
+      user.email.toLowerCase().includes(debouncedSearch.toLowerCase()),
   );
 
   if (loading) return <p className="text-gray-500">Loading users...</p>;
@@ -140,19 +144,17 @@ const Users = () => {
                           user.mentorStatus === "approved"
                             ? "bg-green-100 text-green-700"
                             : user.mentorStatus === "pending"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : user.mentorStatus === "rejected"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-gray-100 text-gray-600"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : user.mentorStatus === "rejected"
+                                ? "bg-red-100 text-red-700"
+                                : "bg-gray-100 text-gray-600"
                         }`}
                     >
                       {user.mentorStatus}
                     </span>
                   </td>
 
-                  <td>
-                    {new Date(user.createdAt).toLocaleDateString()}
-                  </td>
+                  <td>{new Date(user.createdAt).toLocaleDateString()}</td>
 
                   <td className="text-center">
                     <button

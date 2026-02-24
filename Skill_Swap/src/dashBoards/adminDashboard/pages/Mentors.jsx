@@ -11,6 +11,13 @@ const Mentors = () => {
 
   const { deleteMentorById } = useAdminStore();
 
+  const BASE_URL =
+    window.location.hostname === "localhost"
+      ? "http://localhost:3000"
+      : "https://skill-swap-fullstack-1-8y82.onrender.com";
+
+  const ADMIN_API_URL = `${BASE_URL}/api/admin`;
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
@@ -21,7 +28,7 @@ const Mentors = () => {
 
   const handleRemoveMentor = async (mentorId) => {
     const confirmDelete = window.confirm(
-      "Are you sure you want to remove this mentor?"
+      "Are you sure you want to remove this mentor?",
     );
     if (!confirmDelete) return;
 
@@ -38,15 +45,12 @@ const Mentors = () => {
         setLoading(true);
         setError(null);
 
-        const res = await fetch(
-          "https://skill-swap-fullstack-1-8y82.onrender.com/api/admin/getTotalMentorsList",
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
-          }
-        );
+        const res = await fetch(`${ADMIN_API_URL}/getTotalMentorsList`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        });
 
         if (!res.ok) {
           throw new Error("Failed to fetch mentors list");
@@ -66,10 +70,8 @@ const Mentors = () => {
 
   const filteredMentors = mentors.filter(
     (mentor) =>
-      mentor.username
-        .toLowerCase()
-        .includes(debouncedSearch.toLowerCase()) ||
-      mentor.email.toLowerCase().includes(debouncedSearch.toLowerCase())
+      mentor.username.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      mentor.email.toLowerCase().includes(debouncedSearch.toLowerCase()),
   );
 
   if (loading) return <p className="text-gray-500">Loading mentors...</p>;
