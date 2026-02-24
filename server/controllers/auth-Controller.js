@@ -5,10 +5,10 @@ const MentorRequest = require("../models/mentorRequest");
 const Mentor = require("../models/Mentor");
 const { generateAccessToken, generateRefreshToken } = require("../utils/Tokens");
 const ConnectionRequest = require("../models/ConnectionRequest");
-const transporter = require("../config/EmailTransporter");
+// const transporter = require("../config/sendMail");
 require("dotenv").config();
 const { redisClient } = require("../config/redis");
-const sendEmail = require("../config/EmailTransporter");
+const sendEmail = require("../config/sendMail");
 
 
 const register = async (req, res) => {
