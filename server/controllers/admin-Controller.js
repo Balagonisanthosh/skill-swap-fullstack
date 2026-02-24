@@ -1,4 +1,4 @@
-const transporter = require("../config/EmailTransporter");
+// const transporter = require("../config/EmailTransporter");
 const Mentor = require("../models/Mentor");
 const User = require("../models/User");
 const MentorRequest = require("../models/mentorRequest");
