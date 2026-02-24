@@ -1,8 +1,8 @@
-// const transporter = require("../config/EmailTransporter");
+const transporter = require("../config/EmailTransporter");
 const Mentor = require("../models/Mentor");
 const User = require("../models/User");
 const MentorRequest = require("../models/mentorRequest");
-const {redisClient} = require("../config/redis");
+const { redisClient } = require("../config/redis");
 require("dotenv").config();
 
 const getAdminDashboardStats = async (req, res) => {
@@ -150,6 +150,22 @@ const approveMentorRequest = async (req, res) => {
     user.role = "mentor";
     user.mentorStatus = "approved";
     await user.save();
+    transporter.sendMail({
+      from: `<${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: "🎉 Your Mentor Request Has Been Approved!",
+      html: `
+        <div style="font-family: Arial; padding: 20px;">
+          <h2>Congratulations ${user.username} 🎉</h2>
+          <p>Your mentor request has been <b>approved</b>.</p>
+          <p>You can now log in and start mentoring.</p>
+          <br/>
+          <p>Best Regards,<br/>Team</p>
+        </div>
+      `,
+    }).catch(err => {
+      console.error("Email sending failed:", err);
+    });
 
     await redisClient.del("admin:dashboard");
 
@@ -193,6 +209,38 @@ const rejectMentorRequest = async (req, res) => {
     user.mentorStatus = "rejected";
     await user.save();
 
+    transporter.sendMail({
+      from: `<${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: "Mentor Application Update",
+      html: `
+        <div style="font-family: Arial; padding: 20px;">
+          <h2>Hello ${user.username},</h2>
+
+          <p>We appreciate your interest in becoming a mentor.</p>
+
+          <p>
+            After reviewing your application, we regret to inform you that it has been
+            <strong style="color:red;">rejected</strong>.
+          </p>
+
+          <div style="background:#f8f8f8; padding:15px; border-radius:6px; margin-top:10px;">
+            <strong>Reason:</strong>
+            <p style="margin-top:5px;">${reason}</p>
+          </div>
+
+          <p style="margin-top:15px;">
+            You’re welcome to improve your profile and apply again in the future.
+          </p>
+
+          <br/>
+          <p>Best Regards,<br/>Team</p>
+        </div>
+      `,
+    }).catch(err => {
+      console.error("Rejection email failed:", err);
+    });
+
     // 🔥 Clear Redis cache
     await redisClient.del("admin:dashboard");
 
@@ -230,6 +278,31 @@ const deleteMentorByID = async (req, res) => {
 
     await Mentor.findOneAndDelete({ userId: id });
 
+    transporter.sendMail({
+      from: `<${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: "Mentor Role Update",
+      html: `
+        <div style="font-family: Arial; padding: 20px;">
+          <h2>Hello ${user.username},</h2>
+
+          <p>
+            We would like to inform you that your <strong>mentor access has been removed</strong>.
+          </p>
+
+          <p>
+            If you believe this was done in error or would like to reapply,
+            please contact support or submit a new mentor request.
+          </p>
+
+          <br/>
+          <p>Best Regards,<br/>Team</p>
+        </div>
+      `,
+    }).catch(err => {
+      console.error("Mentor removal email failed:", err);
+    });
+
     await redisClient.del("admin:dashboard");
 
     return res.status(200).json({
@@ -249,6 +322,35 @@ const deleteMentorByID = async (req, res) => {
 const deleteUserByID = async (req, res) => {
   try {
     const { id } = req.params;
+    const user = await User.findById(id);
+    if (!user)
+      return res.status(404).json({ message: "User not found" });
+
+    transporter.sendMail({
+      from: `<${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: "Account Deletion Notice",
+      html: `
+        <div style="font-family: Arial; padding: 20px;">
+          <h2>Hello ${user.username},</h2>
+
+          <p>
+            We regret to inform you that your account has been
+            <strong>deleted by the administrator</strong>.
+          </p>
+
+          <p>
+            If you believe this action was taken in error,
+            please contact support for further clarification.
+          </p>
+
+          <br/>
+          <p>Best Regards,<br/>Team</p>
+        </div>
+      `,
+    }).catch(err => {
+      console.error("User deletion email failed:", err);
+    });
 
     await MentorRequest.findOneAndDelete({ userId: id });
     await Mentor.findOneAndDelete({ userId: id });

@@ -1,35 +1,28 @@
 const cron = require("node-cron");
 const User = require("../models/User");
-const sendEmail = require("../config/sendMail");
+const transporter = require("../config/EmailTransporter");
 
-// Runs every day at 10:00 AM
-cron.schedule("0 10 * * *", async () => {
-  console.log("🚀 Running encouragement job");
-
-  try {
-    const users = await User.find();
-    console.log("Users found:", users.length);
-
-    for (const user of users) {
-      try {
-        await sendEmail(
-          user.email,
-          "Keep Growing on SkillSwap 🚀",
-          `
-          <h3>Hello ${user.username},</h3>
+cron.schedule('0 10 * * *', async () => {
+    console.log("running encouragement job");
+    try {
+        const users = await User.find();
+        console.log("Users found:", users.length);
+        for (const user of users) {
+            await transporter.sendMail({
+                from: process.env.EMAIL_USER,
+                to: user.email,
+                subject: "Keep Growing on SkillSwap 🚀",
+                html: `
+          <h3>Hello ${username},</h3>
           <p>Share a skill today or learn something new!</p>
           <p>Log in now and connect with others.</p>
           <br/>
-          <strong>SkillSwap Team 💡</strong>
-          `
-        );
-
-        console.log(`✅ Email sent to ${user.email}`);
-      } catch (emailError) {
-        console.error(`❌ Failed for ${user.email}:`, emailError.message);
-      }
+          <strong>SkillSwap Team 💡</strong>`
+        })
+        console.log(`email sent to ${user.email}`);
+        }
+    } catch (error) {
+        console.error("Error sending emails:", error);
+        
     }
-  } catch (error) {
-    console.error("❌ Error sending emails:", error);
-  }
-});
+})
