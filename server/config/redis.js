@@ -2,9 +2,6 @@ const { createClient } = require("redis");
 
 const redisClient = createClient({
   url: process.env.REDIS_URL,
-  socket: {
-    tls: true, // REQUIRED for Render
-  },
 });
 
 redisClient.on("error", (err) => {
@@ -17,10 +14,8 @@ const connectRedis = async () => {
     console.log("✅ Redis Connected");
   } catch (error) {
     console.error("❌ Redis Connection Failed:", error);
+    throw error;
   }
 };
 
-module.exports = {
-  redisClient,
-  connectRedis,
-};
+module.exports = { redisClient, connectRedis };
