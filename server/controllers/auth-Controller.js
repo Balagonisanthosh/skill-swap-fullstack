@@ -579,48 +579,45 @@ const forgotPassword = async (req, res) => {
       return res.status(400).json({ message: "Email is required" });
     }
 
-    // 1️⃣ Find user
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // 2️⃣ Generate JWT reset token
     const resetToken = jwt.sign(
       { id: user._id },
       process.env.RESET_PASSWORD_SECRET,
       { expiresIn: "15m" }
     );
 
-    // 3️⃣ Reset link (frontend)
     const resetURL = `https://skill-swap-fullstack.vercel.app/reset-password/${resetToken}`;
 
-    // 4️⃣ Send email (safe)
     try {
-      await transporter.sendMail({
-        from: `"SkillSwap" <skillswapalerts@gmail.com>`,
-        to: user.email,
-        subject: "Reset your SkillSwap password",
-        html: `
-          <div style="font-family: Arial, sans-serif;">
-            <h2>Password Reset</h2>
-            <p>You requested to reset your password.</p>
-            <p>This link is valid for <strong>15 minutes</strong>.</p>
-            <a href="${resetURL}" target="_blank">
-              Reset Password
-            </a>
-            <p>If you did not request this, ignore this email.</p>
-          </div>
-        `,
-      });
+      await sendEmail(
+        user.email,
+        "Reset your SkillSwap password",
+        `
+        <div style="font-family: Arial, sans-serif;">
+          <h2>Password Reset</h2>
+          <p>You requested to reset your password.</p>
+          <p>This link is valid for <strong>15 minutes</strong>.</p>
+          <a href="${resetURL}" target="_blank">
+            Reset Password
+          </a>
+          <p>If you did not request this, ignore this email.</p>
+        </div>
+        `
+      );
     } catch (emailErr) {
-      console.error("EMAIL ERROR:", emailErr.message);
+      console.error("EMAIL ERROR:", emailErr.response?.body || emailErr.message);
+      return res.status(500).json({ message: "Email sending failed" });
     }
 
     return res.status(200).json({
       success: true,
       message: "Password reset link sent to email",
     });
+
   } catch (error) {
     console.error("FORGOT PASSWORD ERROR:", error);
     return res.status(500).json({ message: "Server error" });
