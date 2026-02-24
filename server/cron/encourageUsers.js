@@ -1,6 +1,6 @@
 const cron = require("node-cron");
 const User = require("../models/User");
-const sendEmail = require("../utils/sendEmail"); // ✅ correct import
+const sendEmail = require("../config/sendMail");
 
 // Runs every day at 10:00 AM
 cron.schedule("0 10 * * *", async () => {
