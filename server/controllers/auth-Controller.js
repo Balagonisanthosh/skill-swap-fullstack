@@ -8,6 +8,7 @@ const ConnectionRequest = require("../models/ConnectionRequest");
 const transporter = require("../config/EmailTransporter");
 require("dotenv").config();
 const { redisClient } = require("../config/redis");
+const sendEmail = require("../config/EmailTransporter");
 
 
 const register = async (req, res) => {
