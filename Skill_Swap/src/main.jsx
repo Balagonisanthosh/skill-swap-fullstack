@@ -33,6 +33,8 @@ import AdminLayout from "./dashBoards/adminDashboard/AdminLayout";
 import ResetPassword from "./pages/ResetPassword";
 import ForgotPassword from "./pages/ForgetPassword";
 import ChatPage from "./pages/ChatPage";
+import AccessDenied from "./pages/AccessDenied";
+import AdminRoute from "../routes/AdminProtectedRoute";
 
 
 const router = createBrowserRouter([
@@ -42,6 +44,7 @@ const router = createBrowserRouter([
   { path: "/login", element: <Login /> },
   {path:"/reset-password/:token",element:<ResetPassword/>},
   {path:"/forgot-password",element:<ForgotPassword/>},
+  {path:"/access-denied", element:<AccessDenied/>},
 
   // ---------- PROTECTED ROUTES ----------
   {
@@ -81,7 +84,11 @@ const router = createBrowserRouter([
   // ---------- ADMIN ROUTES ----------
   {
     path: "/admin",
-    element: <AdminLayout/>,
+     element: (
+    <AdminRoute>
+      <AdminLayout />
+    </AdminRoute>
+  ),
     children: [
       { index: true, element: <AdminHome /> },
       { path: "users", element: <Users /> },

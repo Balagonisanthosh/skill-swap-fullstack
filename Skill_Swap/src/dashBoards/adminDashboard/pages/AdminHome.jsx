@@ -1,24 +1,27 @@
 import { useEffect } from "react";
 import useAdminStore from "../../../store/adminStore";
+import { useAuthStore } from "../../../store/authStore";
 
 const AdminHome = () => {
-  const {
-    dashboardStats,
-    fetchDashboardStats,
-    loading,
-    error,
-  } = useAdminStore();
+  const { dashboardStats, fetchDashboardStats, loading, error } =
+    useAdminStore();
 
-  const {
-    totalUsers,
-    approvedMentors,
-    pendingMentors,
-    rejectedMentors, 
-  } = dashboardStats;
+  const { user } = useAuthStore();
+
+  const { totalUsers, approvedMentors, pendingMentors, rejectedMentors } =
+    dashboardStats;
 
   useEffect(() => {
-    fetchDashboardStats();
-  }, [fetchDashboardStats]);
+    if (user?.role === "admin") {
+      // ✅ only admin calls API
+      fetchDashboardStats();
+    }
+  }, [user, fetchDashboardStats]);
+
+  // ✅ If not admin, show access denied
+  if (user?.role !== "admin") {
+    return <p className="text-red-500 text-xl font-semibold">Access Denied</p>;
+  }
 
   if (loading) {
     return <p className="text-gray-500">Loading dashboard...</p>;
