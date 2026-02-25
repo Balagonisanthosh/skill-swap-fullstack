@@ -370,7 +370,7 @@ const fetchMentors = async (req, res) => {
 
     const mentors = await Mentor.find({
       isActive: true,
-      userId: { $ne: userId }, // 🚫 exclude current logged-in user
+      userId: { $ne: userId }, 
     })
       .populate("userId", "username email profileImage")
       .sort({ createdAt: -1 });

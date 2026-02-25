@@ -7,7 +7,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
 
   const navigate = useNavigate();
-  const { login, isLoading, isAuthenticated, error } = useAuthStore();
+  const { login, isLoading, isAuthenticated, error ,user} = useAuthStore();
 
   const handleLoginDetails = async (e) => {
     e.preventDefault();
@@ -15,11 +15,15 @@ const Login = () => {
     await login(email, password);
   };
 
-  useEffect(() => {
-    if (isAuthenticated) {
+ useEffect(() => {
+  if (isAuthenticated && user) {
+    if (user.role === "admin") {
+      navigate("/admin/dashboard");
+    } else {
       navigate("/dashboard");
     }
-  }, [isAuthenticated, navigate]);
+  }
+}, [isAuthenticated, user, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
