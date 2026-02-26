@@ -23,12 +23,13 @@ const {
   forgotPassword,
   resetPassword,
 } = require("../controllers/auth-Controller");
+const { loginLimiter } = require("../middleware/rateLimiter");
 
 
 
 router.post("/register", upload.single("photo"), register);
 
-router.post("/login", login);
+router.post("/login", loginLimiter,login);
 
 router.get("/profile", authMiddleware, getProfile);
 
@@ -86,5 +87,7 @@ router.post("/reset-password/:token", resetPassword);
 
 
 router.post("/logout", logout);
+
+
 
 module.exports = router;

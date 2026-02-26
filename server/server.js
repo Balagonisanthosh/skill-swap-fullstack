@@ -15,6 +15,8 @@ const jwt = require("jsonwebtoken");
 const Conversation = require("./models/Conversation");
 const Message = require("./models/Message");
 const chatRoutes = require("./routes/ChatRoutes");
+const sessionRoutes = require("./routes/SessionRoutes");
+const { generalLimiter } = require("./middleware/rateLimiter");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -43,12 +45,13 @@ app.use("/api", (req, res, next) => {
 app.disable("x-powered-by");
 app.use(helmet());
 app.use("/uploads", express.static("uploads"));
-
+app.use("/api/sessions", sessionRoutes);
 // ---------------- ROUTES ----------------
 app.use("/api/auth", authRoute);
 app.use("/api/admin", adminRoute);
 app.use("/api/mentors", mentorRoute);
 app.use("/api/chat", chatRoutes);
+app.use(generalLimiter);
 
 // ---------------- HTTP SERVER ----------------
 const server = http.createServer(app);
