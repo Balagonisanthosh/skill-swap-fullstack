@@ -16,7 +16,7 @@ const generalLimiter = rateLimit({
 
 // Login limiter
 const loginLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
+  windowMs: 5 * 60 * 1000,
   max: 5,
   standardHeaders: true,
   legacyHeaders: false,
