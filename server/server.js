@@ -31,6 +31,7 @@ app.use(
       "http://localhost:3000",
       "https://skill-swap-fullstack.vercel.app",
     ],
+   
     credentials: true,
   })
 );
@@ -45,8 +46,8 @@ app.use("/api", (req, res, next) => {
 app.disable("x-powered-by");
 app.use(helmet());
 app.use("/uploads", express.static("uploads"));
-app.use("/api/sessions", sessionRoutes);
 // ---------------- ROUTES ----------------
+app.use("/api/sessions", sessionRoutes);
 app.use("/api/auth", authRoute);
 app.use("/api/admin", adminRoute);
 app.use("/api/mentors", mentorRoute);

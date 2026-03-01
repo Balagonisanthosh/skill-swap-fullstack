@@ -131,7 +131,7 @@ export const useAuthStore = create((set, get) => ({
     if (profileData.photo instanceof File)
       formData.append("photo", profileData.photo);
 
-    const res = await get().fetchWithAuth(`${API_URL}/profile`, {
+    const res = await get().fetchWithAuth(`${API_URL}/updateProfile`, {
       method: "PUT",
       body: formData,
     });

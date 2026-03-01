@@ -34,7 +34,7 @@ router.post("/login", loginLimiter,login);
 router.get("/profile", authMiddleware, getProfile);
 
 router.put(
-  "/profile",
+  "/updateProfile",
   authMiddleware,
   upload.single("photo"),
   updateProfile
